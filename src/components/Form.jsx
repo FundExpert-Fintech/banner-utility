@@ -1,8 +1,9 @@
 // components/Form.js
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import { submitFormData } from '@/pages/api/services';
 
-const Form = () => {
+const Form = ({setIsFormDataValid, setGetTemplates}) => {
   const [formData, setFormData] = useState({
     logoUrl: '',
     head: '',
@@ -16,18 +17,46 @@ const Form = () => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
 
-    // Check if any of the form fields are empty before navigating
+  //   // Check if any of the form fields are empty before navigating
+  //   if (formData.logoUrl && formData.head && formData.greet) {
+  //     // Redirect to the dynamic route with form data
+  //     router.push({
+  //       pathname: '/templates/[...formData]',
+  //       query: formData, // Pass the form data as query parameters
+  //     });
+  //   } else {
+  //     // Handle the case where some form fields are empty
+  //     console.error('All form fields must be filled');
+  //   }
+  // };
+
+  const response = {
+    message: 'Success',
+    error: [],
+    templates: [
+    '1.png',
+    '2.png',
+    '3.png',
+    '4.png',
+    '1.png',
+    '3.png',
+    ], // will have url to the image
+    count: 15 // Number of url
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log('formData ------', formData);
     if (formData.logoUrl && formData.head && formData.greet) {
-      // Redirect to the dynamic route with form data
-      router.push({
-        pathname: '/templates/[...formData]',
-        query: formData, // Pass the form data as query parameters
-      });
+      // const response = await submitFormData(formData);
+      // console.log('Data submitted successfully:', response);
+      // setIsFormDataValid(Object.values(formData).every(Boolean));
+      setIsFormDataValid(response.message === 'Success');
+      response.message === 'Success' ?  setGetTemplates(response.templates) : alert('Invalid Input');
     } else {
-      // Handle the case where some form fields are empty
       console.error('All form fields must be filled');
     }
   };
