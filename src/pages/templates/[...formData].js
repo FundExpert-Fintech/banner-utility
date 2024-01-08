@@ -8,6 +8,7 @@ const TemplatesPage = ({isFormDataValid, getTemplates, openModal}) => {
   // Check if formData exists and is not empty
   // const isFormDataValid = formData && formData.length === 3 && formData.every(Boolean);
 
+
   console.log('isFormDataValid ---', isFormDataValid);
 
   // Mock templates for demonstration purposes
