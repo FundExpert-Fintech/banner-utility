@@ -1,13 +1,13 @@
 // components/Form.js
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { submitFormData } from '@/pages/api/services';
+import { embedTextOnImage } from '@/pages/api/services';
 
-const Form = ({setIsFormDataValid, setGetTemplates}) => {
+const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embeddedImageUrl}) => {
   const [formData, setFormData] = useState({
-    logoUrl: '',
-    head: '',
-    greet: '',
+    logo: '',
+    header: '',
+    greetingText: '',
   });
 
   const router = useRouter();
@@ -17,58 +17,56 @@ const Form = ({setIsFormDataValid, setGetTemplates}) => {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   // Check if any of the form fields are empty before navigating
-  //   if (formData.logoUrl && formData.head && formData.greet) {
-  //     // Redirect to the dynamic route with form data
-  //     router.push({
-  //       pathname: '/templates/[...formData]',
-  //       query: formData, // Pass the form data as query parameters
-  //     });
-  //   } else {
-  //     // Handle the case where some form fields are empty
-  //     console.error('All form fields must be filled');
-  //   }
-  // };
-
-  const response = {
-    message: 'Success',
-    error: [],
-    templates: [
-    '1.png',
-    '2.png',
-    '3.png',
-    '4.png',
-    '1.png',
-    '3.png',
-    ], // will have url to the image
-    count: 15 // Number of url
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('formData ------', formData);
-    if (formData.logoUrl && formData.head && formData.greet) {
-      // const response = await submitFormData(formData);
-      // console.log('Data submitted successfully:', response);
-      // setIsFormDataValid(Object.values(formData).every(Boolean));
-      setIsFormDataValid(response.message === 'Success');
-      response.message === 'Success' ?  setGetTemplates(response.templates) : alert('Invalid Input');
+
+    if (formData.header && formData.greetingText) {
+      try {
+        const embeddedImage = await embedTextOnImage(
+          'bfl.png',
+          formData,
+          [
+            {
+              "top": 3.59375,
+              "left": 7.494303385416667,
+              "type": "logo"
+            },
+            {
+              "top": 19.84375,
+              "left": 6.869303385416667,
+              "type": "header"
+            },
+            {
+              "top": 82.1875,
+              "left": 92.91097005208333,
+              "type": "greetingText"
+            }
+          ]
+        );
+
+        // Display the embedded image
+        setEmbeddedImageUrl(embeddedImage)
+
+        // Now you can use the embeddedImage as needed
+      } catch (error) {
+        console.error('Error embedding text on image:', error);
+      }
     } else {
       console.error('All form fields must be filled');
     }
   };
 
+
   return (
-    <form onSubmit={handleSubmit} className="container mx-auto my-8">
+    <div className="container mx-auto my-8">
+    <form onSubmit={handleSubmit} >
       <label className="block mb-4">
         Logo URL:
         <input
           type="text"
-          name="logoUrl"
-          value={formData.logoUrl}
+          name="logo"
+          value={formData.logo}
           onChange={handleChange}
           className="w-full p-2 border rounded-md focus:outline-none focus:border-blue-500"
         />
@@ -77,8 +75,8 @@ const Form = ({setIsFormDataValid, setGetTemplates}) => {
         Header Message:
         <input
           type="text"
-          name="head"
-          value={formData.head}
+          name="header"
+          value={formData.header}
           onChange={handleChange}
           className="w-full p-2 border rounded-md focus:outline-none focus:border-blue-500"
         />
@@ -87,8 +85,8 @@ const Form = ({setIsFormDataValid, setGetTemplates}) => {
         Greeting Message:
         <input
           type="text"
-          name="greet"
-          value={formData.greet}
+          name="greetingText"
+          value={formData.greetingText}
           onChange={handleChange}
           className="w-full p-2 border rounded-md focus:outline-none focus:border-blue-500"
         />
@@ -97,6 +95,8 @@ const Form = ({setIsFormDataValid, setGetTemplates}) => {
         Submit
       </button>
     </form>
+    </div>
+
   );
 };
 

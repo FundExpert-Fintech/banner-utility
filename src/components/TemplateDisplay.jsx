@@ -23,7 +23,7 @@ const TemplateDisplay = ({ templates, openModal }) => {
                   <img src={template} alt={index} className="object-cover"/>
                 </div>
                 <div className="flex justify-between items-center gap-2 h-[43px]">
-                  <button className="bg-blue-600 text-white py-2 px-3 rounded-lg w-1/2" onClick={()=>openModal(template)}>
+                  <button className="bg-gray-800 text-white py-2 px-3 rounded-lg w-1/2" onClick={()=>openModal(template)}>
                     Preview
                   </button>
                   <div className='flex justify-center items-center gap-3 w-1/2'>

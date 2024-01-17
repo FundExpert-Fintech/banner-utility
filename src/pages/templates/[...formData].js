@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import TemplateDisplay from '../../components/TemplateDisplay';
 
 const TemplatesPage = ({isFormDataValid, getTemplates, openModal}) => {
