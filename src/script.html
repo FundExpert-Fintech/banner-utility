@@ -1,0 +1,100 @@
+
+<html>
+<head>
+
+    <script>
+      async function sendEmail(e) {
+        e.preventDefault(); // Prevent form submission (if used within a form)
+
+        try {
+          // Get the subject for the email
+          const subject = "Please find the details for Enquiry";
+
+          // Get the body (data) for the email using mailData function
+          const body = await mailData();
+
+          // Log the body (data) to the console for verification
+          console.log('body - - - ', body);
+
+          // Use AJAX to send data to the server
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', 'test.jsp', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              // Log a success message to the console
+              console.log('Email sent successfully');
+
+              // Use the Email.send function after the AJAX request succeeds
+              Email.send(
+                "maheshwarimfportfolios@gmail.com",
+                "siddhanthawealthmanagers@gmail.com",
+                subject,
+                body,
+                "smtp.gmail.com",
+                "sdlala1980@gmail.com",
+                "aofpcnnwsarqjroa"
+              );
+
+              // Alert the user that the email was sent successfully
+              alert("Email sent successfully");
+            }
+          };
+
+          // Send the JSON data in the request body
+          xhr.send(body);
+        } catch (error) {
+          console.error('Error:', error.message);
+          alert("Email send failed");
+        }
+      }
+
+
+      //   async function mailData() {
+      //     const name = document.getElementById('name');
+      //     var email = document.getElementById("email");
+      //     var number = document.getElementById("number");
+      //     var message = document.getElementById("message");
+      //     var city = document.getElementById("city");
+      //     var data = ` Name =${name.value} <br> Email = ${email.value} <br> Mobile= ${number.value} <br> Message = ${message.value} <br> City =  ${city.value}`;
+      //     return data;
+      //   }
+
+      async function mailData() {
+        try {
+          // Get references to HTML elements with specified IDs
+          const name = document.getElementById('name');
+          const email = document.getElementById('email');
+          const number = document.getElementById('number');
+          const message = document.getElementById('message');
+          const city = document.getElementById('city');
+
+          const formData = {
+            name: name.value,
+            email: email.value,
+            number: number.value,
+            message: message.value,
+            city: city.value
+          };
+
+          // console.log('formData - - - ', JSON.stringify(formData));
+
+          // Use JSON.stringify to convert the object to a JSON string
+          const jsonData = JSON.stringify(formData);
+
+          // console.log('jsonData - - - - ', jsonData);
+          // Return the JSON string
+          return jsonData;
+        } catch (error) {
+          console.error('Error:', error.message);
+          throw error;
+        }
+      }
+    </script>
+</head>
+<body>
+    <button onclick="sendEmail()">
+        Click me
+    </button>
+</body>
+</html>

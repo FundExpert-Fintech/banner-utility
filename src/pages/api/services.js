@@ -1,18 +1,22 @@
 import axios from "axios";
 
-export const submitFormData = async (formData) => {
+export const getImages = async (formData) => {
   try {
-    const response = await axios.post('API URL', formData);
-    return response.data;
+    const response = await axios.get('http://localhost:8080/getTemplates', formData);
+    if (response.data.message === 'Success') {
+      return response.data;
+    } else {
+      throw new Error(`Server responded with an error: ${response.data.error.join(', ')}`);
+    }
   } catch (error) {
     throw new Error(`Error submitting data: ${error.message}`);
   }
 };
 
-
 // imageUtils.js
 export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
   console.log('textData - - - ', textData);
+
   return new Promise((resolve, reject) => {
     const backgroundImage = new Image();
     backgroundImage.crossOrigin = 'anonymous';
@@ -33,16 +37,14 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
         console.log('marker - - - ', marker);
 
         if (type === 'logo' && textData[type]) {
-          // If type is 'logo' and a logo URL is present, load the logo image
           const logoImage = new Image();
           logoImage.crossOrigin = 'anonymous';
           logoImage.src = textData[type];
 
           const logoPromise = new Promise((logoResolve, logoReject) => {
             logoImage.onload = () => {
-              // Adjust the size and position as needed
-              const logoX = left + 350;  // Adjust the position as needed
-              const logoY = top + 10;   // Adjust the position as needed
+              const logoX = left;
+              const logoY = top;
               const logoWidth = 80;
               const logoHeight = 80;
               context.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
@@ -56,20 +58,17 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
 
           logoPromises.push(logoPromise);
         } else {
-          // For text markers or other types, treat it as text
           const text = textData[type] || '';
           console.log('text - - ', text);
           context.font = '30px Arial';
           context.fillStyle = 'black';
 
-          // Adjust the position of the text as needed
-          const textX = left + 350;
-          const textY = top + 250 ;  // Adjust the position as needed  // Adjust the marginBottom as needed
+          const textX = left;
+          const textY = top;
           context.fillText(text, textX, textY);
         }
       }
 
-      // After all logo images are loaded, resolve with the embedded image
       Promise.all(logoPromises)
         .then(() => {
           const embeddedImage = canvas.toDataURL();
