@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ImageMarker from 'react-image-marker';
 import CustomMarker from '../components/CustomMarker';
+import { submitFormData } from '@/pages/api/services';
 
 const ImageMarkerForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -79,73 +80,122 @@ const ImageMarkerForm = () => {
     setSelectedFile(null);
     setMarkers([]);
     setCurrentStep('upload');
+    setCompletedSteps([]);
     setIsFormSubmitted(false);
   };
 
-  const submitForm = () => {
+  const submitForm = async () => {
     console.log('markers - - ', JSON.stringify(markers));
     // Your manual form submission logic here
     console.log('Manual form submission:', {
       image: selectedFile,
       markers,
     });
+
+      const formData = {
+          file : selectedFile,
+          url: 'string',
+          xLogo: markers[0].left,
+          yLogo: markers[0].top,
+          logoWidth: 40,
+          xHead: markers[1].left,
+          yHead: markers[1].top,
+          headWidth: 50,
+          headColor: 'blue',
+          xGreet: markers[2].left,
+          yGreet: markers[2].top,
+          greetWidth: 150,
+          greetColor: 'red',
+      };
+
+
+
+    const submitForm = await submitFormData(formData);
+
   };
 
   return (
-    <div className="flex mt-4 space-x-4">
-      {/* Left side: Completed steps */}
-      <div className="flex flex-col items-center bg-gray-200 p-4">
-        <h2 className="text-xl font-semibold mb-4">Completed Steps</h2>
-        <ul className="list-none p-0">
-          {completedSteps.map((step, index) => (
-            <li key={index} className="flex items-center mb-2">
-              <span className="mr-2 text-green-500">&#10003;</span>
-              {step}
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div className='container mx-auto my-8'>
+      <div className="flex mt-4 space-x-4 flex-wrap justify-center lg:justify-between gap-4 py-4 md:py-6">
+        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-lg max-w-[400px]">
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800 text-left">Instructions</h2>
+          <ul className="p-3 text-lg list-disc text-gray-600 font-medium">
+            <li className='mb-2'>Upload the file</li>
+            <li className='mb-2'>Place the marker for logo</li>
+            <li className='mb-2'>Place the marker for Heading text</li>
+            <li className='mb-2'>Place the marker for Greeting text</li>
+          </ul>
+        </div>
 
-      {/* Right side: Image with markers */}
-      <div className="flex-1">
-        {currentStep === 'upload' && (
-          <div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleUploadClick}
-              className="mt-4"
-            />
-            <button
-              onClick={() => moveNextStep()}
-              className="bg-blue-500 text-white px-4 py-2 mt-4"
-            >
-              Next
-            </button>
-          </div>
-        )}
-        {currentStep !== 'upload' && (
-          <div className="flex justify-center">
-            <ImageMarker
-              src={selectedFile ? URL.createObjectURL(selectedFile) : ''}
-              markers={markers}
-              onAddMarker={handleMarkerAdd}
-              onRemoveMarker={removeMarker}
-              markerComponent={CustomMarker}
-              disabled={isFormSubmitted}
-            />
-            <div className="mt-4">
-              <button onClick={clearImage} className="bg-red-500 text-white px-4 py-2 mr-4">
-                Clear Image
-              </button>
-              {completedSteps.length === 3 && (
-                <button onClick={submitForm} className="bg-green-500 text-white px-4 py-2">
-                  Submit Form
-                </button>
-              )}
+
+        {/* Center side: Image with markers */}
+        <div className="w-full md:w-[768px]">
+          {currentStep === 'upload' && (
+            <div className='h-full'>
+              
+            <div className="w-[300px] mx-auto flex flex-col items-center justify-center h-full gap-2">
+              <img src="/uploadIcon.svg" className='w-[100px]' alt="" />
+              <label htmlFor="fileInput" className="mt-4 cursor-pointer border-2 border-[#003974] text-[#003974] px-4 py-2 rounded-md">
+                Upload File
+              </label>
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                onChange={handleUploadClick}
+                className="hidden" // Hide the default file input button
+              />                   
             </div>
-          </div>
-        )}
+
+
+
+              {/* <button
+                onClick={() => moveNextStep()}
+                className="bg-blue-500 text-white px-4 py-2 mt-4 w-36 rounded-lg"
+              >
+                Next
+              </button> */}
+            </div>
+          )}
+          {currentStep !== 'upload' && (
+            <div className="flex flex-col gap-3 md:w-[550px] mx-auto">
+              <div className='w-full mb-10'>
+                <ImageMarker
+                  src={selectedFile ? URL.createObjectURL(selectedFile) : ''}
+                  markers={markers}
+                  onAddMarker={handleMarkerAdd}
+                  onRemoveMarker={removeMarker}
+                  markerComponent={CustomMarker}
+                  disabled={isFormSubmitted}
+                />
+              </div>
+              <div className="w-full md:w-[350px] mx-auto">
+                <button onClick={clearImage} className="bg-red-600 text-white px-4 py-2 mr-4 mb-3 rounded-lg w-full">
+                  Clear Image
+                </button>
+                {completedSteps.length === 3 && (
+                  <button onClick={submitForm} className="bg-[#003974] text-white px-4 py-2 rounded-lg w-full">
+                    Submit Form
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Left side: Completed steps */}
+        <div className="flex flex-col items-center bg-[#003974] p-4 rounded-lg md:w-[300px]">
+          <h2 className="text-2xl font-semibold mb-4 text-white">Completed Steps</h2>
+          <ul className="list-none py-3">
+            {completedSteps.map((step, index) => (
+              <li key={index} className="flex items-center mb-3 bg-white p-2 rounded-md">
+                {/* <span className="mr-2 text-green-500">&#10003;</span> */}
+                <img src="/successIcon.svg" alt="" className='w-4 mr-2'/>
+                 {step}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
