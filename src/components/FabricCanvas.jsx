@@ -162,37 +162,82 @@ const FabricCanvas = () => {
   }, []);
 
   return (
-    <div>
-      <input type="file" ref={imageInputRef} accept="image/*" onChange={(e) => handleImage(e)} />
-      <canvas ref={canvasRef} width={800} height={600}></canvas>
-      <div id="buttons" style={{ position: 'absolute', zIndex: 0 }}>
-        <button onClick={() => addText()}>Add Text</button>
-        <button onClick={() => addImage()}>Add Image</button>
-        <label htmlFor="textResize">Text Size:</label>
-        <input type="range" id="textResize" min="1" max="100" defaultValue="20" onChange={(e) => handleTextResize(e)} />
-        <label htmlFor="textColorPicker">Text Color:</label>
-        <input
-          type="color"
-          id="textColorPicker"
-          defaultValue="#03a9f4"
-          onChange={(e) => handleTextColorChange(e.target.value)}
-        />
-        <label htmlFor="imageResize">Image Size:</label>
-        <input
-          type="range"
-          id="imageResize"
-          min="0.1"
-          max="2"
-          step="0.1"
-          defaultValue="0.5"
-          onChange={(e) => handleImageResize(e)}
-        />
-        <button onClick={() => removeSelected()}>Remove Selected</button>
-        <button onClick={() => removeAll()}>Remove All</button>
-        <button onClick={() => downloadImage()}>Download Image</button>
+    <div className="container mx-auto md:my-8 py-4 md:py-6 bg-[#cfd9e3]">
+
+      <div id="buttons" className="flex items-center gap-3 mb-5 px-5 h-20">        
+        <button title="Add Title" className="p-2 border-2 border-gray-500 h-full bg-white" onClick={() => addText()}>
+          <img src="/text.svg" className="mx-auto h-6" alt="img" />
+          <span className="text-xs font-normal text-gray-500">Add Text</span>
+        </button>
+        <button className="p-2 border-2 h-full bg-white border-gray-500" onClick={() => addImage()}>
+          <img src="/imgIcon.svg" className="mx-auto h-6" alt="img" />
+          <span className="text-xs font-normal text-gray-500">Add Image</span>
+        </button>
+        <button className="p-2 border-2 h-full bg-white border-gray-500" onClick={() => removeSelected()}>
+          <img src="/removeSelect.svg" className="mx-auto h-6" alt="img" />
+          <span className="text-xs font-normal text-gray-500">Remove Selected</span>
+        </button>
+        <button className="p-2 border-2 h-full bg-white border-gray-500" onClick={() => removeAll()}>
+          <img src="/removeAll.svg" className="mx-auto h-6" alt="img" />
+          <span className="text-xs font-normal text-gray-500">Remove All</span>
+        </button>
+        <button className="p-2 border-2 h-full bg-white border-gray-500" onClick={() => downloadImage()}>
+          <img src="/download.svg" className="mx-auto h-6" alt="img" />
+          <span className="text-xs font-normal text-gray-500">Download</span>
+        </button>
+      </div>
+
+      <div className="flex gap-4 p-5">
+        <div className="flex flex-col items-start col-span-1 max-w-[300px] w-full bg-gray-100 p-5 rounded-lg">
+          <div className="w-full mb-6 rounded-md bg-[#d7e1eb] p-3">
+            <h4 className="text-lg font-medium mb-2">Text</h4>
+            <div className="mb-2">
+              <label htmlFor="textResize" className="inline-block w-12">Size: </label>
+              <input className="align-middle w-32 bg-black" type="range" id="textResize" min="1" max="100" defaultValue="20" onChange={(e) => handleTextResize(e)} />
+            </div>
+            <div className="w-full">
+              <label htmlFor="textColorPicker" className="inline-block w-12">Color: </label>
+              <input
+                className="align-middle"
+                type="color"
+                id="textColorPicker"
+                defaultValue="#03a9f4"
+                onChange={(e) => handleTextColorChange(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="w-full rounded-md bg-[#d7e1eb] p-3">
+            <h4 className="text-lg font-medium mb-1">Image</h4>
+            <label htmlFor="imageResize" className="inline-block w-12">Size: </label>
+            <input
+              className="align-middle w-32"
+              type="range"
+              id="imageResize"
+              min="0.1"
+              max="2"
+              step="0.1"
+              defaultValue="0.5"
+              onChange={(e) => handleImageResize(e)}
+            />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg relative z-0">
+          <canvas className="shadow-md rounded-lg " ref={canvasRef} width={800} height={600}></canvas>
+        </div>
+        <div className="bg-white w-[300px] rounded-lg">
+          <div className="w-full mx-auto flex flex-col items-center justify-center h-full gap-2">
+            <img src="/upload.svg" className='w-[100px]' alt="" />
+            <label htmlFor="fileUpload" className="mt-4 cursor-pointer border-2 border-[#003974] bg-white text-[#003974] px-4 py-2 rounded-md">
+              Upload File
+            </label>
+            <input type="file" id="fileUpload" className="hidden" ref={imageInputRef} accept="image/*" onChange={(e) => handleImage(e)} />
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default FabricCanvas;
+
