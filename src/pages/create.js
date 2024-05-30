@@ -3,9 +3,9 @@ import ImageMarkerForm from "@/components/ImageMarkerForm";
 import FabricCanvas from "@/components/FabricCanvas";
 
 const Create = () => {
-  return <>
-    {/*<ImageMarkerForm/>*/}
-    <FabricCanvas/>
+  return <>¸
+    <ImageMarkerForm/>
+    {/*<FabricCanvas/>*/}
   </>;
 };
 

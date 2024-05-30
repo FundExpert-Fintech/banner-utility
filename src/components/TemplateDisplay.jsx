@@ -17,7 +17,16 @@ const TemplateDisplay = ({ templates, openModal }) => {
                   <button className="bg-gray-800 text-white py-2 px-3 rounded-lg w-1/2" onClick={()=>openModal(template.embeddedImage)}>
                     Preview
                   </button>
+                  <div className='flex justify-center items-center gap-3 w-1/2'>
+                    <FacebookMessengerShareButton url={template.embeddedImage}
+                                                  quote="Check out this image on Facebook">
+                      <FacebookMessengerIcon size={32} round />
+                    </FacebookMessengerShareButton>
 
+                    <WhatsappShareButton url={template.embeddedImage}    title="Check out this image on WhatsApp">
+                      <WhatsappIcon size={32} round />
+                    </WhatsappShareButton>
+                  </div>
                 </div>
               </div>
           ))}

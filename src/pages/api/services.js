@@ -2,12 +2,21 @@ import axios from "axios";
 
 export const getImages = async (formData) => {
   try {
-    const response = await axios.get('http://localhost:8080/getTemplates', formData);
+    const response = await axios.get('http://localhost:8090/getTemplates', formData);
     if (response.data.message === 'Success') {
       return response.data;
     } else {
       throw new Error(`Server responded with an error: ${response.data.error.join(', ')}`);
     }
+  } catch (error) {
+    throw new Error(`Error submitting data: ${error.message}`);
+  }
+};
+
+export const submitFormData = async (formData) => {
+  try {
+    const response = await axios.post('http://localhost:8090/upload', formData);
+    return response.data;
   } catch (error) {
     throw new Error(`Error submitting data: ${error.message}`);
   }

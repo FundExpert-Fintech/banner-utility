@@ -1,204 +1,178 @@
-import React, { useState } from 'react';
-import ImageMarker from 'react-image-marker';
-import CustomMarker from '../components/CustomMarker';
-import { submitFormData } from '@/pages/api/services';
+import React, { useState, useRef } from 'react';
+import { fabric } from 'fabric';
 
-const ImageMarkerForm = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [markers, setMarkers] = useState([]);
-  const [completedSteps, setCompletedSteps] = useState([]);
-  const [currentStep, setCurrentStep] = useState('upload');
-  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+function ImageMarkerComponent() {
+  const [canvas, setCanvas] = useState(null);
+  const [imageUploaded, setImageUploaded] = useState(false);
+  const canvasRef = useRef(null);
 
-  const handleUploadClick = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setMarkers([]); // Clear existing markers when a new image is selected
-      setCurrentStep('logo'); // Move to the next step after uploading
-    }
+  const originalMarkers = [
+    { type: 'logoMarker', index: 0 },
+    { type: 'textMarker', index: 1 },
+    { type: 'headerMarker', index: 2 },
+  ];
+
+  const [availableMarkers, setAvailableMarkers] = useState(originalMarkers);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const imgObj = new Image();
+      imgObj.src = event.target.result;
+
+      imgObj.onload = function () {
+        const newCanvas = new fabric.Canvas(canvasRef.current);
+        newCanvas.setWidth(imgObj.width);
+        newCanvas.setHeight(imgObj.height);
+        const imgInstance = new fabric.Image(imgObj, {
+          left: 0,
+          top: 0,
+          selectable: false,
+        });
+        newCanvas.setBackgroundImage(imgInstance, newCanvas.renderAll.bind(newCanvas));
+        setCanvas(newCanvas);
+        setImageUploaded(true);
+      };
+    };
+
+    reader.readAsDataURL(file);
   };
 
-  const handleMarkerAdd = (marker) => {
-    if (isFormSubmitted) {
-      // If form is submitted, ignore further marker additions
-      return;
-    }
+  const handleMarkerDrop = (e, type) => {
+    e.preventDefault();
+    const { layerX, layerY } = e.nativeEvent;
+    if (!canvas) return;
 
-    // Remove existing marker for the current step
-    const filteredMarkers = markers.filter((m) => m.type !== currentStep);
+    const updatedMarkers = availableMarkers.filter(marker => marker.type !== type);
+    setAvailableMarkers(updatedMarkers);
 
-    marker.type = currentStep;
-    setMarkers([...filteredMarkers, marker]);
-
-    // Update completed steps for logo, header, and greetingText
-    if (currentStep === 'logo') {
-      setCompletedSteps((prevSteps) => [...prevSteps, currentStep]);
-    } else if (currentStep === 'header' && markers.find((m) => m.type === 'logo')) {
-      setCompletedSteps((prevSteps) => [...prevSteps, currentStep]);
-    } else if (
-      currentStep === 'greetingText' &&
-      markers.find((m) => m.type === 'logo') &&
-      markers.find((m) => m.type === 'header')
-    ) {
-      setCompletedSteps((prevSteps) => [...prevSteps, currentStep]);
-    }
-
-    moveNextStep();
-  };
-
-  const moveNextStep = () => {
-    switch (currentStep) {
-      case 'logo':
-        setCurrentStep('header');
+    let text = '';
+    switch (type) {
+      case 'logoMarker':
+        text = 'Logo Marker';
         break;
-      case 'header':
-        setCurrentStep('greetingText');
+      case 'textMarker':
+        text = 'Text Marker';
+        break;
+      case 'headerMarker':
+        text = 'Header Marker';
         break;
       default:
-        // Submission step
-        console.log('Form submitted:', {
-          image: selectedFile,
-          markers,
-        });
-        setCompletedSteps(['logo', 'header', 'greetingText']); // Update completed steps
-        setIsFormSubmitted(true);
-    }
-  };
-
-  const removeMarker = () => {
-    if (isFormSubmitted) {
-      // If form is submitted, prevent marker removal
-      return;
+        break;
     }
 
-    const filteredMarkers = markers.filter((m) => m.type !== currentStep);
-    setMarkers(filteredMarkers);
-  };
-
-  const clearImage = () => {
-    setSelectedFile(null);
-    setMarkers([]);
-    setCurrentStep('upload');
-    setCompletedSteps([]);
-    setIsFormSubmitted(false);
-  };
-
-  const submitForm = async () => {
-    console.log('markers - - ', JSON.stringify(markers));
-    // Your manual form submission logic here
-    console.log('Manual form submission:', {
-      image: selectedFile,
-      markers,
+    const marker = new fabric.Text(text, {
+      fontSize: 20,
+      left: layerX,
+      top: layerY,
+      type, // Store the marker type
     });
+    canvas.add(marker);
+  };
 
-      const formData = {
-          file : selectedFile,
-          url: 'string',
-          xLogo: markers[0].left,
-          yLogo: markers[0].top,
-          logoWidth: 40,
-          xHead: markers[1].left,
-          yHead: markers[1].top,
-          headWidth: 50,
-          headColor: 'blue',
-          xGreet: markers[2].left,
-          yGreet: markers[2].top,
-          greetWidth: 150,
-          greetColor: 'red',
-      };
+  const handleMarkerDragOver = (e) => {
+    e.preventDefault();
+  };
 
+  const handleRemoveSelected = () => {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.text && activeObject.type) {
+      console.log("Removing:", activeObject.text);
+      console.log("Available Markers:", availableMarkers);
+      canvas.remove(activeObject);
+      const markerType = activeObject.type;
+      console.log("Marker Type:", markerType);
 
+      setAvailableMarkers(prevMarkers => {
+        const newMarkers = [...prevMarkers];
+        const originalMarker = originalMarkers.find(marker => marker.type === markerType);
+        if (originalMarker) {
+          newMarkers.splice(originalMarker.index, 0, originalMarker);
+        }
+        console.log("New markers:", newMarkers);
+        return newMarkers;
+      });
+    }
+  };
 
-    const submitForm = await submitFormData(formData);
+  const handleRemoveAll = () => {
+    canvas.clear();
+    setAvailableMarkers(originalMarkers);
+  };
 
+  const handleSubmit = () => {
+    if (!canvas) return;
+    const markers = canvas.getObjects();
+    const formData = {
+      markers: markers.map(marker => ({
+        type: marker.text,
+        left: marker.left,
+        top: marker.top,
+        width: marker.width,
+        fill: marker.fill,
+      }))
+    };
+
+    console.log(formData);
   };
 
   return (
-    <div className='container mx-auto my-8'>
-      <div className="flex mt-4 space-x-4 flex-wrap justify-center lg:justify-between gap-4 py-4 md:py-6">
-        <div className="flex flex-col items-center bg-gray-200 p-4 rounded-lg max-w-[400px]">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800 text-left">Instructions</h2>
-          <ul className="p-3 text-lg list-disc text-gray-600 font-medium">
-            <li className='mb-2'>Upload the file</li>
-            <li className='mb-2'>Place the marker for logo</li>
-            <li className='mb-2'>Place the marker for Heading text</li>
-            <li className='mb-2'>Place the marker for Greeting text</li>
-          </ul>
-        </div>
+    <div className="container mx-auto max-w-8xl px-4 py-8">
 
-
-        {/* Center side: Image with markers */}
-        <div className="w-full md:w-[768px]">
-          {currentStep === 'upload' && (
-            <div className='h-full'>
-              
-            <div className="w-[300px] mx-auto flex flex-col items-center justify-center h-full gap-2">
-              <img src="/uploadIcon.svg" className='w-[100px]' alt="" />
-              <label htmlFor="fileInput" className="mt-4 cursor-pointer border-2 border-[#003974] text-[#003974] px-4 py-2 rounded-md">
-                Upload File
-              </label>
-              <input
-                type="file"
-                id="fileInput"
-                accept="image/*"
-                onChange={handleUploadClick}
-                className="hidden" // Hide the default file input button
-              />                   
-            </div>
-
-
-
-              {/* <button
-                onClick={() => moveNextStep()}
-                className="bg-blue-500 text-white px-4 py-2 mt-4 w-36 rounded-lg"
+      <div className="grid grid-cols-3 gap-4">
+        <div className="...">
+          <div className="flex flex-col space-y-4">
+            {availableMarkers.map(marker => (
+              <div
+                key={marker.type}
+                className="marker bg-gray-200 p-2 cursor-pointer"
+                id={marker.type}
+                draggable="true"
+                onDragStart={(e) => e.dataTransfer.setData('type', marker.type)} // Set marker type as data
               >
-                Next
-              </button> */}
-            </div>
-          )}
-          {currentStep !== 'upload' && (
-            <div className="flex flex-col gap-3 md:w-[550px] mx-auto">
-              <div className='w-full mb-10'>
-                <ImageMarker
-                  src={selectedFile ? URL.createObjectURL(selectedFile) : ''}
-                  markers={markers}
-                  onAddMarker={handleMarkerAdd}
-                  onRemoveMarker={removeMarker}
-                  markerComponent={CustomMarker}
-                  disabled={isFormSubmitted}
-                />
+                {marker.type === 'logoMarker' ? 'Logo Marker' : marker.type === 'textMarker' ? 'Text Marker' : 'Header Marker'}
               </div>
-              <div className="w-full md:w-[350px] mx-auto">
-                <button onClick={clearImage} className="bg-red-600 text-white px-4 py-2 mr-4 mb-3 rounded-lg w-full">
-                  Clear Image
-                </button>
-                {completedSteps.length === 3 && (
-                  <button onClick={submitForm} className="bg-[#003974] text-white px-4 py-2 rounded-lg w-full">
-                    Submit Form
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Left side: Completed steps */}
-        <div className="flex flex-col items-center bg-[#003974] p-4 rounded-lg md:w-[300px]">
-          <h2 className="text-2xl font-semibold mb-4 text-white">Completed Steps</h2>
-          <ul className="list-none py-3">
-            {completedSteps.map((step, index) => (
-              <li key={index} className="flex items-center mb-3 bg-white p-2 rounded-md">
-                {/* <span className="mr-2 text-green-500">&#10003;</span> */}
-                <img src="/successIcon.svg" alt="" className='w-4 mr-2'/>
-                 {step}
-              </li>
             ))}
-          </ul>
+          </div>
+          <br/>
+          <br/>
+          <br/>
+          <div className="mb-4">
+            <p className="text-lg mb-2">To mark areas on the image:</p>
+            <p className="text-gray-600">1. Click "Upload Image" to select an image.</p>
+            <p className="text-gray-600">2. Once the image is uploaded, drag and drop markers from the left onto the image.</p>
+            <p className="text-gray-600">3. To remove a marker, click on it and then click "Remove Selected".</p>
+            <p className="text-gray-600">4. To remove all markers, click "Remove All Markers".</p>
+            <p className="text-gray-600">5. Click "Submit" to save the marked areas.</p>
+          </div>
+
+          <div className="mt-4">
+            <input type="file" id="imgInput" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            <label htmlFor="imgInput" className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer">Upload Image</label>
+          </div>
+        </div>
+        <div className="col-span-2 ...">
+          <div
+            id="canvas_cont"
+            className="border border-gray-300 rounded-lg overflow-hidden relative contents"
+            onDragOver={(e) => handleMarkerDragOver(e)}
+            onDrop={(e) => handleMarkerDrop(e, e.dataTransfer.getData('type'))}
+          >
+            <canvas ref={canvasRef} id="canvas" className="block"></canvas> {/* Remove fixed dimensions */}
+          </div>
+          <div className="mt-4 float-right">
+            <button className="bg-red-500 text-white py-2 px-4 rounded mr-4" onClick={handleRemoveSelected}>Remove Selected</button>
+            <button className="bg-red-500 text-white py-2 px-4 rounded mr-4" onClick={handleRemoveAll}>Remove All Markers</button>
+            <button className="mt-4 bg-blue-500 text-white py-2 px-4 rounded" onClick={handleSubmit}>Submit</button>
+          </div>
         </div>
       </div>
+
     </div>
   );
-};
+}
 
-export default ImageMarkerForm;
+export default ImageMarkerComponent;
