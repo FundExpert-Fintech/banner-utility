@@ -1,8 +1,15 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const getImages = async (formData) => {
   try {
-    const response = await axios.get('http://localhost:8090/getTemplates', formData);
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NDk0Nzc3LCJleHAiOjE3MTc1ODExNzd9.9EdNt-bsq_FmmmvARQP5ROVfNvMJqPUV2-KSKekvZo4';
+    const response = await axios.get('http://localhost:8000/template/getTemplates', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      params: formData
+    });
+
     if (response.data.message === 'Success') {
       return response.data;
     } else {
@@ -12,25 +19,37 @@ export const getImages = async (formData) => {
     throw new Error(`Error submitting data: ${error.message}`);
   }
 };
-
 export const submitFormData = async (formData) => {
   try {
-    const response = await axios.post('http://localhost:8090/upload', formData);
+    const formDataToSend = new FormData();
+    for (const key in formData) {
+      formDataToSend.append(key, formData[key]);
+    }
+
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NDk0Nzc3LCJleHAiOjE3MTc1ODExNzd9.9EdNt-bsq_FmmmvARQP5ROVfNvMJqPUV2-KSKekvZo4';
+
+    const response = await axios.post('http://localhost:8000/template/upload', formDataToSend, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
     return response.data;
   } catch (error) {
     throw new Error(`Error submitting data: ${error.message}`);
   }
 };
 
+
 // imageUtils.js
 export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
-  console.log('textData - - - ', textData);
-
+  console.log('textData - - - ', backgroundImageUrl);
   return new Promise((resolve, reject) => {
     const backgroundImage = new Image();
+
     backgroundImage.crossOrigin = 'anonymous';
     backgroundImage.src = backgroundImageUrl;
-
+    console.log(backgroundImage.onload)
     backgroundImage.onload = () => {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -38,13 +57,10 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
       canvas.height = backgroundImage.height;
       console.log('canvas - - - ', canvas);
       context.drawImage(backgroundImage, 0, 0);
-
       let logoPromises = [];
-
       for (const marker of markers) {
         const { top, left, type } = marker;
         console.log('marker - - - ', marker);
-
         if (type === 'logo' && textData[type]) {
           const logoImage = new Image();
           logoImage.crossOrigin = 'anonymous';
