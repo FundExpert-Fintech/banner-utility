@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export const getImages = async (formData) => {
   try {
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NDk0Nzc3LCJleHAiOjE3MTc1ODExNzd9.9EdNt-bsq_FmmmvARQP5ROVfNvMJqPUV2-KSKekvZo4';
-    const response = await axios.get('http://localhost:8000/template/getTemplates', {
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NjY0Njg5LCJleHAiOjE3MTc3NTEwODl9.px4IFgAhdKbSdkynxV3srN-JhVeU_9qEnK0dVHGbdB8';
+    const response = await axios.get('http://marketing-module-be.fundexpert.in/template/getTemplates', {
       headers: {
         'Authorization': `Bearer ${token}`
       },
@@ -26,9 +26,8 @@ export const submitFormData = async (formData) => {
       formDataToSend.append(key, formData[key]);
     }
 
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NDk0Nzc3LCJleHAiOjE3MTc1ODExNzd9.9EdNt-bsq_FmmmvARQP5ROVfNvMJqPUV2-KSKekvZo4';
-
-    const response = await axios.post('http://localhost:8000/template/upload', formDataToSend, {
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NjY0Njg5LCJleHAiOjE3MTc3NTEwODl9.px4IFgAhdKbSdkynxV3srN-JhVeU_9qEnK0dVHGbdB8';
+    const response = await axios.post('http://marketing-module-be.fundexpert.in/template/upload', formDataToSend, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -43,13 +42,12 @@ export const submitFormData = async (formData) => {
 
 // imageUtils.js
 export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
-  console.log('textData - - - ', backgroundImageUrl);
+  console.log('textData - - - ', JSON.stringify(markers));
   return new Promise((resolve, reject) => {
     const backgroundImage = new Image();
 
     backgroundImage.crossOrigin = 'anonymous';
     backgroundImage.src = backgroundImageUrl;
-    console.log(backgroundImage.onload)
     backgroundImage.onload = () => {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -59,7 +57,7 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
       context.drawImage(backgroundImage, 0, 0);
       let logoPromises = [];
       for (const marker of markers) {
-        const { top, left, type } = marker;
+        const { x, y, type, width, color } = marker;
         console.log('marker - - - ', marker);
         if (type === 'logo' && textData[type]) {
           const logoImage = new Image();
@@ -68,10 +66,10 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
 
           const logoPromise = new Promise((logoResolve, logoReject) => {
             logoImage.onload = () => {
-              const logoX = left;
-              const logoY = top;
-              const logoWidth = 80;
-              const logoHeight = 80;
+              const logoX = x;
+              const logoY = y;
+              const logoWidth = width || 80;
+              const logoHeight = marker.height || 80;
               context.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
               logoResolve();
             };
@@ -82,21 +80,30 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
           });
 
           logoPromises.push(logoPromise);
-        } else {
+        } else if (type === 'text' && textData[type]) {
           const text = textData[type] || '';
           console.log('text - - ', text);
           context.font = '30px Arial';
-          context.fillStyle = 'black';
+          context.fillStyle = color || 'black';
 
-          const textX = left;
-          const textY = top;
+          const textX = x;
+          const textY = y;
+          context.fillText(text, textX, textY);
+        } else if (type === 'header' && textData[type]) {
+          const text = textData[type] || '';
+          console.log('header text - - ', text);
+          context.font = '40px Arial';
+          context.fillStyle = color || 'black';
+
+          const textX = x;
+          const textY = y;
           context.fillText(text, textX, textY);
         }
       }
 
       Promise.all(logoPromises)
         .then(() => {
-          const embeddedImage = canvas.toDataURL();
+          const embeddedImage = canvas.toDataURL('image/png');
           resolve(embeddedImage);
         })
         .catch((error) => {

@@ -10,15 +10,15 @@ import Link from "next/link"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import {useState} from "react";
-export default function TemplateDisplay({ templates }){
-  const [isLightboxOpen,setIsLightboxOpen] = useState(false);
+export default function TemplateDisplay({ templates, openModal }){
+  // const [isLightboxOpen,setIsLightboxOpen] = useState(false);
   return (
     <>
       <div className="flex-1">
-        <h2 className="text-2xl font-bold mb-4">{templates.length > 0 ? 'Generating Templates...' : 'Generated Templates'}</h2>
+        <h2 className="text-2xl font-bold mb-4">{templates.length > 0 ? ' Generated Templates' : 'Generating Templates...'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
           {templates.length > 0 ? (templates.map((template, index) => (
-            <Card key={index} className="w-full">
+            <Card key={index+1} className="w-full">
               <CardContent className="flex flex-col items-center space-y-4">
                 <img
                   src={template.embeddedImage}
@@ -26,51 +26,20 @@ export default function TemplateDisplay({ templates }){
                   className="w-full aspect-[2/1] object-cover rounded-lg"
                 />
                 <div className="flex gap-2">
-                  <Button onClick={() => setIsLightboxOpen(true)}>Preview</Button>
-                  <Button variant="secondary">Download</Button>
-                  <Link
-                    href={template.embeddedImage}
-                    className="inline-flex items-center gap-1 text-blue-500 hover:underline"
-                    prefetch={false}
-                  >
-                    <FacebookIcon className="w-4 h-4" />
-                  </Link>
-                  <Link
-                    href={template.embeddedImage}
-                    className="inline-flex items-center gap-1 text-green-500 hover:underline"
-                    prefetch={false}
-                  >
-                    <PhoneIcon className="w-4 h-4" />
-                  </Link>
+                  <Button onClick={() => openModal(template.embeddedImage)}>Preview</Button>
+                  <a href={template.embeddedImage} download={`template_${index}.png`} >
+                    <Button variant="secondary">Download</Button>
+                  </a>
+                  <div className='flex justify-center items-center gap-3 w-1/2'>
+                    <FacebookMessengerShareButton url={template.embeddedImage} quote="Check out this image on Facebook">
+                      <FacebookMessengerIcon size={20} round />
+                    </FacebookMessengerShareButton>
+
+                    <WhatsappShareButton url={template.embeddedImage} title="Check out this image on WhatsApp">
+                      <WhatsappIcon size={20} round />
+                    </WhatsappShareButton>
+                  </div>
                 </div>
-                <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-                  <DialogContent className="p-6 max-w-2xl">
-                    <img
-                      src={template.embeddedImage}
-                      alt={`Generated template ${index}`}
-                      className="w-full aspect-[4/3] object-cover rounded-lg"
-                    />
-                    <div className="flex justify-between items-center mt-4">
-                      <Button variant="secondary">Download</Button>
-                      <div className="flex gap-2">
-                        <Link
-                          href={template.embeddedImage}
-                          className="inline-flex items-center gap-1 text-blue-500 hover:underline"
-                          prefetch={false}
-                        >
-                          <FacebookIcon className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href={template.embeddedImage}
-                          className="inline-flex items-center gap-1 text-green-500 hover:underline"
-                          prefetch={false}
-                        >
-                          <PhoneIcon className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </CardContent>
             </Card>
           ))) : (
@@ -90,33 +59,6 @@ export default function TemplateDisplay({ templates }){
           )}
         </div>
       </div>
-      {/*<div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Generated Templates</h2>
-        <div className='flex flex-row flex-wrap gap-4 sm:gap-6 justify-center sm:justify-between'>
-          {templates.map((template, index) => (
-             <div key={index+1} className="w-[250px] border-2 p-2 flex flex-col gap-3 rounded-lg">
-                <div className="h-full">
-                  <img src={template.embeddedImage} alt={index} className="object-cover"/>
-                </div>
-                <div className="flex justify-between items-center gap-2 h-[43px]">
-                  <button className="bg-gray-800 text-white py-2 px-3 rounded-lg w-1/2" onClick={()=>openModal(template.embeddedImage)}>
-                    Preview
-                  </button>
-                  <div className='flex justify-center items-center gap-3 w-1/2'>
-                    <FacebookMessengerShareButton url={template.embeddedImage}
-                                                  quote="Check out this image on Facebook">
-                      <FacebookMessengerIcon size={32} round />
-                    </FacebookMessengerShareButton>
-
-                    <WhatsappShareButton url={template.embeddedImage}    title="Check out this image on WhatsApp">
-                      <WhatsappIcon size={32} round />
-                    </WhatsappShareButton>
-                  </div>
-                </div>
-              </div>
-          ))}
-        </div>
-      </div>*/}
     </>
   );
 };
@@ -138,8 +80,6 @@ function FacebookIcon(props) {
     </svg>
   )
 }
-
-
 function PhoneIcon(props) {
   return (
     <svg

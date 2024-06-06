@@ -1,75 +1,101 @@
-// pages/index.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Form from '../components/Form';
-import Modal from "../components/Modal";
-import {useState} from "react";
 import TemplatesPage from './templates/[...formData]';
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {Dialog, DialogContent} from "@/components/ui/dialog";
+import {Button} from "@/components/ui/button";
+import Link from "next/link";
+import {FacebookMessengerIcon, FacebookMessengerShareButton, WhatsappIcon, WhatsappShareButton} from "react-share";
 const Home = () => {
+  const [isTokenValid, setIsTokenValid] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
   const [isFormDataValid, setIsFormDataValid] = useState(false);
   const [getTemplates, setGetTemplates] = useState([]);
   const [embeddedImageUrl, setEmbeddedImageUrl] = useState(null);
+  const [responseData, setResponseData] = useState(null);
+  useEffect(() => {
+    const savedData = localStorage.getItem('responseData');
+    if (savedData) {
+      setResponseData(JSON.parse(savedData));
+      setIsTokenValid(true);
+    }else{
+      const validateToken = async (token) => {
+        try {
+          const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            setIsTokenValid(true);
+            const data = await response.json();
+            setResponseData(data.user);
+            localStorage.setItem('responseData', JSON.stringify(data.user));
+          } else {
+            setIsTokenValid(false);
+          }
+        } catch (error) {
+          console.error('Error validating token:', error);
+        }
+      };
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const authToken = urlParams.get('auth_token');
+
+      if (authToken) {
+        validateToken(authToken);
+      } else {
+        console.error('No auth token found in URL');
+      }
+    }
+  }, []);
+
   const openModal = (item) => {
-    console.log('item - -  - - called', item);
+    console.log('called- - - ', item)
     setIsModalOpen(true);
     setSelectedImage(item);
   };
-  console.log('setGetTemplates - - ', getTemplates);
-
 
   const closeModal = () => {
     setIsModalOpen(false);
   };
 
   return (
-    <div className="container flex flex-col lg:flex-row gap-8 p-6">
-      <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid}  embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl}/>
-      {/*
-      <div className="flex-1 max-w-md">
-        <h2 className="text-2xl font-bold mb-4">Fill this form</h2>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="logo-upload">Logo:</Label>
-            <Input id="logo-upload" type="file" />
+    <>
+      {isTokenValid && (
+        <div className="container flex flex-col lg:flex-row gap-8 p-6">
+          <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid}  embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl} responseData={responseData}/>
+          <div className="flex-1">
+            <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage}  openModal={openModal}/>
           </div>
-          <div>
-            <Label htmlFor="header-message">Name to Display:</Label>
-            <Input id="header-message" placeholder="Enter your organisation name" />
-          </div>
-          <div>
-            <Label htmlFor="greeting-message">Contact Number:</Label>
-            <Textarea id="greeting-message" placeholder="Enter your contact details/email address" />
-          </div>
-          <Button>Submit</Button>
         </div>
-      </div>
-*/}
-      <div className="flex-1">
-        <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage}  openModal={openModal}/>
-      </div>
-    </div>
+      )}
+      {!isTokenValid && <p>Token is invalid or missing.</p>}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="p-6 max-w-3xl">
+          <img
+            src={selectedImage}
+            alt={`Generated template`}
+            className="w-full aspect-[4/3] object-contain rounded-lg"
+          />
+          <div className="flex justify-between items-center mt-4">
 
-    /*<div className="container mx-auto my-8">
-      <div className="flex flex-col md:flex-row p-4 md:p-6">
-        <Modal isOpen={isModalOpen}  onClose={closeModal} selectedImage={selectedImage} >
-          <img src={selectedImage} alt="img"/>
-          <br/>
-        </Modal>
-        <div className="w-full md:w-[40%] p-3 md:p-5">
-          <h1 className="text-2xl font-bold mb-8">Fill this form</h1>
-          <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid}  embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl}/>
-        </div>
-        <div className=" w-full md:w-full p-3 md:p-5">
-          <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage}  openModal={openModal}/>
-        </div>
-      </div>
-    </div>*/
+            <a href={selectedImage} download={`template_${Math.random()}.png`} >
+              <Button variant="secondary">Download</Button>
+            </a>
+            <div className="flex gap-2">
+                <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
+                  <FacebookMessengerIcon size={20} round />
+                </FacebookMessengerShareButton>
+                <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
+                  <WhatsappIcon size={20} round />
+                </WhatsappShareButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
