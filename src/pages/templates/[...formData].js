@@ -8,7 +8,7 @@ const TemplatesPage = ({isFormDataValid, getTemplates, openModal}) => {
       {isFormDataValid ? (
         <TemplateDisplay templates={getTemplates} openModal={openModal} />
       ) : (
-        <p>Error: Invalid form data. Please fill out all form fields.</p>
+        <p>Please fill out all form fields</p>
       )}
     </div>
   );
