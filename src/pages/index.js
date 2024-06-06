@@ -41,7 +41,7 @@ const Home = () => {
       };
 
       const urlParams = new URLSearchParams(window.location.search);
-      const authToken = urlParams.get('auth_token');
+      const authToken = urlParams.get('token');
 
       if (authToken) {
         validateToken(authToken);
