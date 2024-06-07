@@ -33,6 +33,7 @@ const Home = () => {
             const data = await response.json();
             setResponseData(data.user);
             localStorage.setItem('responseData', JSON.stringify(data.user));
+            removeTokenFromUrl();
           } else {
             setIsTokenValid(false);
           }
@@ -51,6 +52,12 @@ const Home = () => {
       }
     }
   }, []);
+
+  const removeTokenFromUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('token');
+    window.history.replaceState({}, document.title, url.toString());
+  };
 
   const openModal = (item) => {
     console.log('called- - - ', item)
