@@ -29,6 +29,7 @@ const Home = () => {
           });
           if (response.ok) {
             setIsTokenValid(true);
+            localStorage.setItem('auth_token', token);
             const data = await response.json();
             setResponseData(data.user);
             localStorage.setItem('responseData', JSON.stringify(data.user));

@@ -122,7 +122,8 @@ const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embedde
         </div>
       </form>
       <br/>
-      <Card>
+      {responseData &&
+        <Card>
         <CardContent className="grid grid-cols-1 gap-4 bg-gray-100 dark:bg-gray-800 p-6 rounded-lg">
           <div className="space-y-1">
             <div className="text-lg font-semibold">Hi, {responseData.name}</div>
@@ -136,7 +137,7 @@ const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embedde
             <div>{responseData.contactInfo.mobile ? responseData.contactInfo.mobile  : 'NA'}</div>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
     </div>
   );
 };

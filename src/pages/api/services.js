@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const getImages = async (formData) => {
   try {
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NjY0Njg5LCJleHAiOjE3MTc3NTEwODl9.px4IFgAhdKbSdkynxV3srN-JhVeU_9qEnK0dVHGbdB8';
+    const token = localStorage.getItem('auth_token');
     const response = await axios.get('http://marketing-module-be.fundexpert.in/template/getTemplates', {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -26,7 +26,7 @@ export const submitFormData = async (formData) => {
       formDataToSend.append(key, formData[key]);
     }
 
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiIxIiwicm9sZUlkIjoyLCJyb290VXNlciI6IlZpc2lvbiIsIm5hbWUiOiJTb3VyYWJoIEJhamFqIiwiZW1haWwiOiJlZXNoYW5zaHVrbGEyNTk4QGdtYWlsLmNvbSIsIm1vYmlsZU51bWJlciI6bnVsbCwiaWF0IjoxNzE3NjY0Njg5LCJleHAiOjE3MTc3NTEwODl9.px4IFgAhdKbSdkynxV3srN-JhVeU_9qEnK0dVHGbdB8';
+    const token = localStorage.getItem('auth_token');
     const response = await axios.post('http://marketing-module-be.fundexpert.in/template/upload', formDataToSend, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -68,8 +68,8 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
             logoImage.onload = () => {
               const logoX = x;
               const logoY = y;
-              const logoWidth = width || 80;
-              const logoHeight = marker.height || 80;
+              const logoWidth =  80;
+              const logoHeight =  80;
               context.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
               logoResolve();
             };
@@ -92,7 +92,7 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
         } else if (type === 'header' && textData[type]) {
           const text = textData[type] || '';
           console.log('header text - - ', text);
-          context.font = '40px Arial';
+          context.font = '30px Arial';
           context.fillStyle = color || 'black';
 
           const textX = x;
