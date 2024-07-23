@@ -218,6 +218,26 @@ function ImageMarkerComponent() {
     }
   };
 
+  const handleChangeColorSelected = (newColor) => {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.text && activeObject.type) {
+      activeObject.set('fill', newColor);
+      canvas.renderAll();
+    }
+  };
+
+
+  if(canvas){
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.addEventListener('change', (event) => {
+      const newColor = event.target.value;
+      handleChangeColorSelected(newColor);
+    });
+  }
+
+
+
+
   return (
     <div className="flex justify-center py-8">
       <div className="flex w-full max-w-6xl">
@@ -266,7 +286,8 @@ function ImageMarkerComponent() {
           >
             <canvas ref={canvasRef} id="canvas" className="block"></canvas>
           </div>
-          <div className="flex justify-end mt-4 space-x-2">
+          <div className="flex justify-end mt-4 space-x-2 place-items-center">
+            <input type="color" id="colorPicker"/>
             <Button variant="outline" onClick={handleRemoveSelected}>Remove Selected</Button>
             <Button variant="outline" onClick={handleRemoveAll}>Remove All Markers</Button>
             <Button variant="outline" onChange={handleImageUpload}>Change Image</Button>
