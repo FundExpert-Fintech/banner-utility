@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Form from '../components/Form';
 import TemplatesPage from './templates/[...formData]';
-import {Dialog, DialogContent} from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import {FacebookMessengerIcon, FacebookMessengerShareButton, WhatsappIcon, WhatsappShareButton} from "react-share";
+import { FacebookMessengerIcon, FacebookMessengerShareButton, WhatsappIcon, WhatsappShareButton } from "react-share";
+
 const Home = () => {
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,43 +14,40 @@ const Home = () => {
   const [getTemplates, setGetTemplates] = useState([]);
   const [embeddedImageUrl, setEmbeddedImageUrl] = useState(null);
   const [responseData, setResponseData] = useState(null);
+
   useEffect(() => {
-    const savedData = localStorage.getItem('responseData');
-    if (savedData) {
-      setResponseData(JSON.parse(savedData));
-      setIsTokenValid(true);
-    }else{
-      const validateToken = async (token) => {
-        try {
-          const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            setIsTokenValid(true);
-            localStorage.setItem('auth_token', token);
-            const data = await response.json();
-            setResponseData(data.user);
-            localStorage.setItem('responseData', JSON.stringify(data.user));
-            removeTokenFromUrl();
-          } else {
-            setIsTokenValid(false);
+    const validateToken = async (token) => {
+      try {
+        const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        } catch (error) {
-          console.error('Error validating token:', error);
+        });
+        if (response.ok) {
+          setIsTokenValid(true);
+          localStorage.setItem('auth_token', token);
+          const data = await response.json();
+          setResponseData(data.user);
+          localStorage.setItem('responseData', JSON.stringify(data.user));
+          removeTokenFromUrl();
+        } else {
+          setIsTokenValid(false);
         }
-      };
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const authToken = urlParams.get('token');
-
-      if (authToken) {
-        validateToken(authToken);
-      } else {
-        console.error('No auth token found in URL');
+      } catch (error) {
+        console.error('Error validating token:', error);
+        setIsTokenValid(false);
       }
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const authToken = urlParams.get('token');
+
+    if (authToken) {
+      validateToken(authToken);
+    } else {
+      console.error('No auth token found in URL');
+      setIsTokenValid(false);
     }
   }, []);
 
@@ -60,7 +58,6 @@ const Home = () => {
   };
 
   const openModal = (item) => {
-    console.log('called- - - ', item)
     setIsModalOpen(true);
     setSelectedImage(item);
   };
@@ -73,9 +70,9 @@ const Home = () => {
     <>
       {isTokenValid && (
         <div className="container flex flex-col lg:flex-row gap-8 p-6">
-          <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid}  embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl} responseData={responseData}/>
+          <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid} embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl} responseData={responseData} />
           <div className="flex-1">
-            <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage}  openModal={openModal}/>
+            <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage} openModal={openModal} />
           </div>
         </div>
       )}
@@ -93,12 +90,12 @@ const Home = () => {
               <Button variant="secondary">Download</Button>
             </a>
             <div className="flex gap-2">
-                <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
-                  <FacebookMessengerIcon size={20} round />
-                </FacebookMessengerShareButton>
-                <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
-                  <WhatsappIcon size={20} round />
-                </WhatsappShareButton>
+              <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
+                <FacebookMessengerIcon size={20} round />
+              </FacebookMessengerShareButton>
+              <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
+                <WhatsappIcon size={20} round />
+              </WhatsappShareButton>
             </div>
           </div>
         </DialogContent>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import {useState} from "react";
 export default function TemplateDisplay({ templates, openModal }){
+  console.log('templates - - - - -', JSON.stringify(templates));
   // const [isLightboxOpen,setIsLightboxOpen] = useState(false);
   return (
     <>
@@ -31,11 +32,11 @@ export default function TemplateDisplay({ templates, openModal }){
                     <Button variant="secondary">Download</Button>
                   </a>
                   <div className='flex justify-center items-center gap-3 w-1/2'>
-                    <FacebookMessengerShareButton url={template.embeddedImage} quote="Check out this image on Facebook">
+                    <FacebookMessengerShareButton url={template.url} quote="">
                       <FacebookMessengerIcon size={20} round />
                     </FacebookMessengerShareButton>
 
-                    <WhatsappShareButton url={template.embeddedImage} title="Check out this image on WhatsApp">
+                    <WhatsappShareButton url={template.embeddedImage} title="">
                       <WhatsappIcon size={20} round />
                     </WhatsappShareButton>
                   </div>
