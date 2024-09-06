@@ -12,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {useState} from "react";
 export default function TemplateDisplay({ templates, openModal }){
   console.log('templates - - - - -', JSON.stringify(templates));
-  // const [isLightboxOpen,setIsLightboxOpen] = useState(false);
   return (
     <>
       <div className="flex-1">

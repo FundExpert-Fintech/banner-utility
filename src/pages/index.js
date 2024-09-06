@@ -3,8 +3,32 @@ import Form from '../components/Form';
 import TemplatesPage from './templates/[...formData]';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { FacebookMessengerIcon, FacebookMessengerShareButton, WhatsappIcon, WhatsappShareButton } from "react-share";
+
+const ModalContent = ({ selectedImage, onClose }) => (
+  <Dialog open={!!selectedImage} onOpenChange={onClose}>
+    <DialogContent className="p-6 max-w-3xl">
+      <img
+        src={selectedImage}
+        alt={`Generated template`}
+        className="w-full aspect-[4/3] object-contain rounded-lg"
+      />
+      <div className="flex justify-between items-center mt-4">
+        <a href={selectedImage} download={`template_${Math.random()}.png`}>
+          <Button variant="secondary">Download</Button>
+        </a>
+        <div className="flex gap-2">
+          <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
+            <FacebookMessengerIcon size={20} round />
+          </FacebookMessengerShareButton>
+          <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
+            <WhatsappIcon size={20} round />
+          </WhatsappShareButton>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
 
 const Home = () => {
   const [isTokenValid, setIsTokenValid] = useState(false);
@@ -16,44 +40,56 @@ const Home = () => {
   const [responseData, setResponseData] = useState(null);
 
   useEffect(() => {
-    const validateToken = async (token) => {
-      try {
-        const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          setIsTokenValid(true);
-          localStorage.setItem('auth_token', token);
-          const data = await response.json();
-          setResponseData(data.user);
-          localStorage.setItem('responseData', JSON.stringify(data.user));
-          removeTokenFromUrl();
-        } else {
-          setIsTokenValid(false);
-        }
-      } catch (error) {
-        console.error('Error validating token:', error);
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+    const urlRoleId = urlParams.get('roleId');
+
+    if (urlToken && urlRoleId) {
+      // If token and roleId are in the URL, clear localStorage and store new values
+      localStorage.clear();
+      localStorage.setItem('auth_token', urlToken);
+      localStorage.setItem('roleId', urlRoleId);
+      validateToken(urlToken);
+    } else {
+      // Use token from localStorage if URL doesn't have token
+      const storedToken = localStorage.getItem('auth_token');
+      if (storedToken) {
+        validateToken(storedToken);
+      } else {
         setIsTokenValid(false);
       }
-    };
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const authToken = urlParams.get('token');
-
-    if (authToken) {
-      validateToken(authToken);
-    } else {
-      console.error('No auth token found in URL');
-      setIsTokenValid(false);
     }
   }, []);
+
+  const validateToken = async (token) => {
+    try {
+      const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Token validation failed');
+      }
+
+      const data = await response.json();
+      setIsTokenValid(true);
+      setResponseData(data.user);
+      localStorage.setItem('responseData', JSON.stringify(data.user));
+      removeTokenFromUrl();
+    } catch (error) {
+      console.error('Error validating token:', error);
+      setIsTokenValid(false);
+      localStorage.clear();  // Clear storage if validation fails
+    }
+  };
 
   const removeTokenFromUrl = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('token');
+    url.searchParams.delete('roleId');
     window.history.replaceState({}, document.title, url.toString());
   };
 
@@ -64,42 +100,35 @@ const Home = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setSelectedImage('');
   };
 
   return (
     <>
-      {isTokenValid && (
+      {isTokenValid ? (
         <div className="container flex flex-col lg:flex-row gap-8 p-6">
-          <Form setIsFormDataValid={setIsFormDataValid} setGetTemplates={setGetTemplates} isFormDataValid={isFormDataValid} embeddedImageUrl={embeddedImageUrl} setEmbeddedImageUrl={setEmbeddedImageUrl} responseData={responseData} />
+          <Form
+            setIsFormDataValid={setIsFormDataValid}
+            setGetTemplates={setGetTemplates}
+            isFormDataValid={isFormDataValid}
+            embeddedImageUrl={embeddedImageUrl}
+            setEmbeddedImageUrl={setEmbeddedImageUrl}
+            responseData={responseData}
+          />
           <div className="flex-1">
-            <TemplatesPage setIsFormDataValid={setIsFormDataValid} getTemplates={getTemplates} isFormDataValid={isFormDataValid} setSelectedImage={setSelectedImage} openModal={openModal} />
+            <TemplatesPage
+              setIsFormDataValid={setIsFormDataValid}
+              getTemplates={getTemplates}
+              isFormDataValid={isFormDataValid}
+              setSelectedImage={setSelectedImage}
+              openModal={openModal}
+            />
           </div>
         </div>
+      ) : (
+        <p>Token is invalid or missing.</p>
       )}
-      {!isTokenValid && <p>Token is invalid or missing.</p>}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="p-6 max-w-3xl">
-          <img
-            src={selectedImage}
-            alt={`Generated template`}
-            className="w-full aspect-[4/3] object-contain rounded-lg"
-          />
-          <div className="flex justify-between items-center mt-4">
-
-            <a href={selectedImage} download={`template_${Math.random()}.png`} >
-              <Button variant="secondary">Download</Button>
-            </a>
-            <div className="flex gap-2">
-              <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
-                <FacebookMessengerIcon size={20} round />
-              </FacebookMessengerShareButton>
-              <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
-                <WhatsappIcon size={20} round />
-              </WhatsappShareButton>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ModalContent selectedImage={selectedImage} onClose={closeModal} />
     </>
   );
 };

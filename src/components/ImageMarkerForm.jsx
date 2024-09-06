@@ -22,7 +22,6 @@ function ImageMarkerComponent() {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    console.log('- - - - - ', file)
     if (!file) return;
     setSelectedImage(e.target.files[0]);
     const reader = new FileReader();
