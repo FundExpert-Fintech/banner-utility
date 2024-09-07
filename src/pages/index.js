@@ -18,12 +18,7 @@ const ModalContent = ({ selectedImage, onClose }) => (
           <Button variant="secondary">Download</Button>
         </a>
         <div className="flex gap-2">
-          <FacebookMessengerShareButton url={selectedImage} quote="Check out this image on Facebook">
-            <FacebookMessengerIcon size={20} round />
-          </FacebookMessengerShareButton>
-          <WhatsappShareButton url={selectedImage} title="Check out this image on WhatsApp">
-            <WhatsappIcon size={20} round />
-          </WhatsappShareButton>
+          <p>To share this image, please download it first.</p>
         </div>
       </div>
     </DialogContent>
@@ -38,7 +33,7 @@ const Home = () => {
   const [getTemplates, setGetTemplates] = useState([]);
   const [embeddedImageUrl, setEmbeddedImageUrl] = useState(null);
   const [responseData, setResponseData] = useState(null);
-
+  const [showLoader, setShowLoader] = useState(false);
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
@@ -114,6 +109,7 @@ const Home = () => {
             embeddedImageUrl={embeddedImageUrl}
             setEmbeddedImageUrl={setEmbeddedImageUrl}
             responseData={responseData}
+            setShowLoader={setShowLoader}
           />
           <div className="flex-1">
             <TemplatesPage
@@ -122,11 +118,15 @@ const Home = () => {
               isFormDataValid={isFormDataValid}
               setSelectedImage={setSelectedImage}
               openModal={openModal}
+              showLoader={showLoader}
             />
           </div>
         </div>
       ) : (
-        <p>Token is invalid or missing.</p>
+        <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight">
+          Something went wrong! please refresh/close this page and try again
+        </p>
+
       )}
       <ModalContent selectedImage={selectedImage} onClose={closeModal} />
     </>

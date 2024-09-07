@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import {Card, CardContent} from "@/components/ui/card";
-const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embeddedImageUrl, responseData}) => {
+const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embeddedImageUrl, responseData, setShowLoader}) => {
   const [formData, setFormData] = useState({
     logo: '',
     header: '',
@@ -38,8 +38,8 @@ const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embedde
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (formData.header && formData.text) {
+      setShowLoader(true);
       try {
         // Fetch images
         const response = await getImages();
@@ -60,17 +60,19 @@ const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embedde
           console.log(templatesWithEmbeddedImages)
           // Set the templates with embedded images
           setGetTemplates(templatesWithEmbeddedImages);
-
           setIsFormDataValid(true); // Assuming validation passed since we are setting templates
-
+          setShowLoader(false);
         } else {
           console.error('Error fetching templates:', response.message);
+          setShowLoader(false);
         }
       } catch (error) {
         console.error('Error fetching templates:', error);
+        setShowLoader(false);
       }
     } else {
       console.error('All form fields must be filled');
+      setShowLoader(false);
     }
   };
 

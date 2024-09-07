@@ -39,7 +39,6 @@ export const submitFormData = async (formData) => {
   }
 };
 
-
 // imageUtils.js
 export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
   console.log('textData - - - ', JSON.stringify(markers));
