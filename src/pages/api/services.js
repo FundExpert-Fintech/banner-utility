@@ -41,7 +41,6 @@ export const submitFormData = async (formData) => {
 
 // imageUtils.js
 export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
-  console.log('textData - - - ', JSON.stringify(markers));
   return new Promise((resolve, reject) => {
     const backgroundImage = new Image();
 
@@ -52,12 +51,12 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
       const context = canvas.getContext('2d');
       canvas.width = backgroundImage.width;
       canvas.height = backgroundImage.height;
-      console.log('canvas - - - ', canvas);
       context.drawImage(backgroundImage, 0, 0);
       let logoPromises = [];
       for (const marker of markers) {
-        const { x, y, type, width, color } = marker;
-        console.log('marker - - - ', marker);
+        const { x, y, type, color, isBold, isItalic, isUnderline, size, font } = marker;
+        context.font = `${isBold ? 'bold' : 'normal'} ${isItalic ? 'italic' : 'normal'} ${size}px ${font || 'Inter'}`;
+        context.fillStyle = color || 'black';
         if (type === 'logo' && textData[type]) {
           const logoImage = new Image();
           logoImage.crossOrigin = 'anonymous';
@@ -65,11 +64,9 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
 
           const logoPromise = new Promise((logoResolve, logoReject) => {
             logoImage.onload = () => {
-              const logoX = x;
-              const logoY = y;
-              const logoWidth =  80;
-              const logoHeight =  80;
-              context.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+              const logoWidth = 80;
+              const logoHeight = 80;
+              context.drawImage(logoImage, x, y, logoWidth, logoHeight);
               logoResolve();
             };
 
@@ -79,24 +76,22 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
           });
 
           logoPromises.push(logoPromise);
-        } else if (type === 'text' && textData[type]) {
+        } else if ((type === 'text' || type === 'header') && textData[type]) {
           const text = textData[type] || '';
-          console.log('text - - ', text);
-          context.font = '30px Arial';
-          context.fillStyle = color || 'black';
-
+          console.log(`${type} text - - `, text);
           const textX = x;
           const textY = y;
           context.fillText(text, textX, textY);
-        } else if (type === 'header' && textData[type]) {
-          const text = textData[type] || '';
-          console.log('header text - - ', text);
-          context.font = '30px Arial';
-          context.fillStyle = color || 'black';
-
-          const textX = x;
-          const textY = y;
-          context.fillText(text, textX, textY);
+          if (isUnderline) {
+            const textWidth = context.measureText(text).width;
+            const underlineY = textY + 5; // Adjust this value to position the underline as needed
+            context.beginPath();
+            context.moveTo(textX, underlineY);
+            context.lineTo(textX + textWidth, underlineY);
+            context.strokeStyle = color || 'black'; // Use the same color as the text
+            context.lineWidth = 2; // Adjust underline thickness as needed
+            context.stroke();
+          }
         }
       }
 

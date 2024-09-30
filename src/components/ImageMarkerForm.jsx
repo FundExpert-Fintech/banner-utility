@@ -18,6 +18,73 @@ function ImageMarkerComponent() {
   const [images, setImages] = useState([]);
   const [showLoader, setShowLoader] = useState(false);
   const [showDeleteLoader, setShowDeleteLoader] = useState(false);
+
+  const [bold, setBold] = useState(false);
+  const [italic, setItalic] = useState(false);
+  const [underline, setUnderline] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
+  const [color, setColor] = useState('#000000');
+
+  const handleMarkerClick = (marker) => {
+    const markerObj = marker.toObject();
+    const textObj = markerObj.objects.find(obj => obj.type === 'text');
+
+    if (textObj) {
+      setBold(textObj.fontWeight === 'bold');
+      setItalic(textObj.fontStyle === 'italic');
+      setUnderline(textObj.underline);
+    } else {
+      setBold(false);
+      setItalic(false);
+      setUnderline(false);
+    }
+  };
+
+  const handleChangeFontSize = (e) => {
+    const newSize = parseInt(e.target.value);
+    setFontSize(newSize);
+
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type && (activeObject.type === 'textMarker' || activeObject.type === 'headerMarker')) {
+      activeObject.item(1).set({ fontSize: newSize }); // Update font size for text inside the marker group
+      canvas.renderAll();
+    }
+  };
+
+  const handleToggleBold = () => {
+    setBold(!bold);
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type && (activeObject.type === 'textMarker' || activeObject.type === 'headerMarker')) {
+      const newWeight = bold ? 'normal' : 'bold'; // Toggle fontWeight
+      activeObject.item(1).set({ fontWeight: newWeight });
+      canvas.renderAll();
+    }
+  };
+
+  const handleToggleItalic = () => {
+    setItalic(!italic);
+
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type && (activeObject.type === 'textMarker' || activeObject.type === 'headerMarker')) {
+      const newStyle = italic ? 'normal' : 'italic'; // Toggle fontStyle
+      activeObject.item(1).set({ fontStyle: newStyle });
+      canvas.renderAll();
+    }
+  };
+
+  const handleToggleUnderline = () => {
+    setUnderline(!underline);
+
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type && (activeObject.type === 'textMarker' || activeObject.type === 'headerMarker')) {
+      const newUnderline = underline ? false : true; // Toggle underline
+      activeObject.item(1).set({ underline: newUnderline });
+      canvas.renderAll();
+    }
+  };
+
+
+
   const fetchImages = async () => {
     try {
       const response = await getImages();
@@ -114,6 +181,7 @@ function ImageMarkerComponent() {
     reader.readAsDataURL(file);
   };
 
+
   const handleMarkerDrop = (e) => {
     e.preventDefault();
     const type = e.dataTransfer.getData('type');
@@ -138,21 +206,39 @@ function ImageMarkerComponent() {
         break;
     }
 
-    const marker = new fabric.Text(text, {
-      fontSize: 20,
+    const markerCircle = new fabric.Circle({
+      radius: 5,
+      fill: 'red',
       left: offsetX,
       top: offsetY,
-      type, // Store the marker type
+      selectable: false,
+      originX: 'center',
+      originY: 'center',
     });
-    canvas.add(marker);
-    canvas.renderAll();
-    removePreviewDot(); // Remove the preview dot when the marker is dropped
-  };
 
+    const markerLabel = new fabric.Text(text, {
+      fontSize: 20,
+      left: offsetX + 10,
+      top: offsetY - 10,
+      selectable: false,
+    });
+
+    const markerGroup = new fabric.Group([markerCircle, markerLabel], {
+      left: offsetX,
+      top: offsetY,
+      selectable: true,
+      type,
+    });
+
+    markerGroup.on('selected', () => handleMarkerClick(markerGroup));
+
+    canvas.add(markerGroup);
+    canvas.renderAll();
+  };
   const handleMarkerDragOver = (e) => {
     e.preventDefault();
     const { offsetX, offsetY } = e.nativeEvent;
-    updatePreviewDot(offsetX, offsetY);
+    // updatePreviewDot(offsetX, offsetY);
   };
 
   const updatePreviewDot = (left, top) => {
@@ -184,7 +270,7 @@ function ImageMarkerComponent() {
 
   const handleRemoveSelected = () => {
     const activeObject = canvas.getActiveObject();
-    if (activeObject && activeObject.text && activeObject.type) {
+    if (activeObject && activeObject.type) {
       canvas.remove(activeObject);
       const markerType = activeObject.type;
 
@@ -212,39 +298,82 @@ function ImageMarkerComponent() {
     const scaleY = bgImage.scaleY;
     const formData = {
       image: selectedImage,
-      xLogo: "",
-      yLogo: "",
-      logoWidth: "",
-      xHead: "",
-      yHead: "",
-      headWidth: "",
+      categoryId: 1,
+      xLogo: 0,
+      yLogo: 0,
+      logoWidth: 0,
+      logoHeight: 0,
+      xHead: 0,
+      yHead: 0,
+      headWidth: 0,
+      isHeadBold: false,
+      isHeadItalic: false,
+      isHeadUnderline: false,
+      headFont: "",
+      headSize: 0,
       headColor: "",
-      xGreet: "",
-      yGreet: "",
-      greetWidth: "",
+      xGreet: 0,
+      yGreet: 0,
+      greetWidth: 0,
+      isGreetBold: false,
+      isGreetItalic: false,
+      isGreetUnderline: false,
+      greetFont: "",
+      greetSize: 0,
       greetColor: ""
     };
-    markers.forEach(marker => {
-      const scaledLeft = marker.left / scaleX;
-      const scaledTop = marker.top / scaleY;
-      const scaledWidth = marker.width / scaleX;
 
-      if (marker.type === 'logoMarker') {
-        formData.xLogo = scaledLeft;
-        formData.yLogo = scaledTop;
-        formData.logoWidth = scaledWidth;
-      } else if (marker.type === 'textMarker') {
-        formData.xGreet = scaledLeft;
-        formData.yGreet = scaledTop;
-        formData.greetWidth = scaledWidth;
-        formData.greetColor = marker.fill;
-      } else if (marker.type === 'headerMarker') {
+    markers.forEach(marker => {
+      const markerObj = marker.toObject(); // Convert to plain object
+      const scaledLeft = markerObj.left / scaleX;
+      const scaledTop = markerObj.top / scaleY;
+      const scaledWidth = markerObj.width / scaleX;
+
+      if (markerObj.type === 'headerMarker') {
         formData.xHead = scaledLeft;
         formData.yHead = scaledTop;
         formData.headWidth = scaledWidth;
-        formData.headColor = marker.fill;
+
+        const textObj = markerObj.objects.find(obj => obj.type === 'text');
+        if (textObj) {
+          formData.headColor = textObj.fill;
+          formData.isHeadBold = textObj.fontWeight === 'bold';
+          formData.isHeadItalic = textObj.fontStyle === 'italic';
+          formData.isHeadUnderline = textObj.underline;
+          formData.headFont = textObj.fontFamily;
+          formData.headSize = textObj.fontSize;
+        } else {
+          console.log('Header Marker Data:', JSON.stringify(markerObj));
+        }
+      }
+      else if (markerObj.type === 'textMarker') {
+        formData.xGreet = scaledLeft;
+        formData.yGreet = scaledTop;
+        formData.greetWidth = scaledWidth;
+
+        const textObj = markerObj.objects.find(obj => obj.type === 'text');
+        if (textObj) {
+          formData.greetColor = textObj.fill;
+          formData.isGreetBold = textObj.fontWeight === 'bold';
+          formData.isGreetItalic = textObj.fontStyle === 'italic';
+          formData.isGreetUnderline = textObj.underline;
+          formData.greetFont = textObj.fontFamily;
+          formData.greetSize = textObj.fontSize;
+        } else {
+          console.log('Text Marker Data:', JSON.stringify(markerObj));
+        }
+      }
+      else if (markerObj.type === 'logoMarker') {
+        formData.xLogo = scaledLeft;
+        formData.yLogo = scaledTop;
+        formData.logoWidth = scaledWidth;
+      } else {
+        console.log('Unknown Marker Type Data:', JSON.stringify(markerObj));
       }
     });
+
+    console.log('form data - - - ', JSON.stringify(formData));
+
     try {
       setShowLoader(true);
       const response = await submitFormData(formData);
@@ -252,11 +381,11 @@ function ImageMarkerComponent() {
         setShowLoader(false);
         canvas.clear();
         setAvailableMarkers(originalMarkers);
-        fetchImages()
+        fetchImages();
       }
     } catch (error) {
       console.error(error);
-      setShowLoader(false)
+      setShowLoader(false);
     }
   };
 
@@ -268,6 +397,18 @@ function ImageMarkerComponent() {
     }
   };
 
+
+
+  const handleChangeColor = (e) => {
+    const newColor = e.target.value;
+    setColor(newColor);
+
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type && (activeObject.type === 'textMarker' || activeObject.type === 'headerMarker')) {
+      activeObject.item(1).set({ fill: newColor });
+      canvas.renderAll();
+    }
+  };
 
   if(canvas){
     const colorPicker = document.getElementById('colorPicker');
@@ -317,25 +458,53 @@ function ImageMarkerComponent() {
               </div>
             </div>
           </div>
-          <div className="w-2/3 p-4">
-            <div
-              id="canvas_cont"
-              className="border border-gray-300 rounded-lg overflow-hidden relative"
-              style={{ width: '100%', height: '600px' }}
-              onDragOver={handleMarkerDragOver}
-              onDrop={handleMarkerDrop}
-            >
-              <canvas ref={canvasRef} id="canvas" className="block"></canvas>
+            <div className="w-2/3 p-4">
+              <div
+                id="canvas_cont"
+                className="border border-gray-300 rounded-lg overflow-hidden relative"
+                style={{ width: '100%', height: '600px' }}
+                onDragOver={handleMarkerDragOver}
+                onDrop={handleMarkerDrop}
+              >
+                <canvas ref={canvasRef} id="canvas" className="block"></canvas>
+              </div>
+
+              <div className="flex flex-wrap justify-end mt-4 space-x-2 gap-2">
+                <Button onClick={handleToggleBold}>{bold ? 'Unbold' : 'Bold'}</Button>
+                <Button onClick={handleToggleItalic}>{italic ? 'Unitalic' : 'Italic'}</Button>
+                <Button onClick={handleToggleUnderline}>{underline ? 'Remove Underline' : 'Underline'}</Button>
+
+                <div className="flex items-center">
+                  <label htmlFor="fontSize" className="mr-2">Font Size:</label>
+                  <input
+                    type="number"
+                    id="fontSize"
+                    value={fontSize}
+                    onChange={handleChangeFontSize}
+                    placeholder="16"
+                    className="border rounded p-1 w-20"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <label htmlFor="colorPicker" className="mr-2">Color:</label>
+                  <input
+                    type="color"
+                    id="colorPicker"
+                    value={color}
+                    onChange={handleChangeColor}
+                    className="border rounded w-12 h-8"
+                  />
+                </div>
+
+                <Button variant="outline" onClick={handleRemoveSelected}>Remove Selected</Button>
+                <Button variant="outline" onClick={handleRemoveAll}>Remove All Markers</Button>
+                <Button variant="outline" onClick={handleImageUpload}>Change Image</Button>
+                <Button onClick={handleSubmit}>{showLoader ? 'Uploading...' : 'Submit'}</Button>
+              </div>
             </div>
-            <div className="flex justify-end mt-4 space-x-2 place-items-center">
-              <input type="color" id="colorPicker"/>
-              <Button variant="outline" onClick={handleRemoveSelected}>Remove Selected</Button>
-              <Button variant="outline" onClick={handleRemoveAll}>Remove All Markers</Button>
-              <Button variant="outline" onChange={handleImageUpload}>Change Image</Button>
-              <Button onClick={handleSubmit}>{showLoader ? 'Uploading...' : 'Submit' }</Button>
-            </div>
+
           </div>
-        </div>
       </div>
         {/* Right column - image gallery */}
         <div className="w-1/3 bg-white border-l">
