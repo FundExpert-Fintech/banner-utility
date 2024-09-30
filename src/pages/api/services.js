@@ -64,9 +64,26 @@ export const embedTextOnImage = (backgroundImageUrl, textData, markers) => {
 
           const logoPromise = new Promise((logoResolve, logoReject) => {
             logoImage.onload = () => {
-              const logoWidth = 80;
-              const logoHeight = 80;
-              context.drawImage(logoImage, x, y, logoWidth, logoHeight);
+              const logoWidth = logoImage.width;
+              const logoHeight = logoImage.height;
+
+              let maxLogoWidth, maxLogoHeight;
+              if (logoWidth > logoHeight) {
+                maxLogoWidth = 150;
+                maxLogoHeight = 80;
+              } else {
+                maxLogoWidth = 100;
+                maxLogoHeight = 120;
+              }
+              const scaleFactor = Math.min(maxLogoWidth / logoWidth, maxLogoHeight / logoHeight, 1);
+
+              const newLogoWidth = logoWidth * scaleFactor;
+              const newLogoHeight = logoHeight * scaleFactor;
+
+              const offsetX = x;
+              const offsetY = y;
+
+              context.drawImage(logoImage, offsetX, offsetY, newLogoWidth, newLogoHeight);
               logoResolve();
             };
 
