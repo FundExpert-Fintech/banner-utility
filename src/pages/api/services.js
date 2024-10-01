@@ -3,7 +3,7 @@ import axios from 'axios';
 export const getImages = async (formData) => {
   try {
     const token = localStorage.getItem('auth_token');
-    const response = await axios.get('http://marketing-module-be.fundexpert.in/template/getTemplates', {
+    const response = await axios.get('https://marketing-module-be.fundexpert.in/template/getTemplates', {
       headers: {
         'Authorization': `Bearer ${token}`
       },
@@ -27,7 +27,7 @@ export const submitFormData = async (formData) => {
     }
 
     const token = localStorage.getItem('auth_token');
-    const response = await axios.post('http://marketing-module-be.fundexpert.in/template/upload', formDataToSend, {
+    const response = await axios.post('https://marketing-module-be.fundexpert.in/template/upload', formDataToSend, {
       headers: {
         Authorization: `Bearer ${token}`
       }

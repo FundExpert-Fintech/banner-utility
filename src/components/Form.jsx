@@ -107,7 +107,7 @@ const Form = ({setIsFormDataValid, setGetTemplates, setEmbeddedImageUrl, embedde
             />
           </div>
           <div>
-            <Label htmlFor="greeting-message">Contact Number:</Label>
+            <Label htmlFor="greeting-message">Contact Information:</Label>
             <Input
               id="greeting-message"
               type="text"
