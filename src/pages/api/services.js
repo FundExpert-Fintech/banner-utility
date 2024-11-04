@@ -3,7 +3,8 @@ import axios from 'axios';
 export const getImages = async (formData) => {
   try {
     const token = localStorage.getItem('auth_token');
-    const response = await axios.get('https://marketing-module-be.fundexpert.in/template/getTemplates', {
+    const applicationId = localStorage.getItem('appId');
+    const response = await axios.get(`https://marketing-module-be.fundexpert.in/template/getTemplates/${applicationId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       },
@@ -19,6 +20,7 @@ export const getImages = async (formData) => {
     throw new Error(`Error submitting data: ${error.message}`);
   }
 };
+
 export const submitFormData = async (formData) => {
   try {
     const formDataToSend = new FormData();

@@ -296,6 +296,7 @@ function ImageMarkerComponent() {
     const bgImage = canvas.backgroundImage;
     const scaleX = bgImage.scaleX;
     const scaleY = bgImage.scaleY;
+    const applicationId = localStorage.getItem('appId');
     const formData = {
       image: selectedImage,
       categoryId: 1,
@@ -320,7 +321,8 @@ function ImageMarkerComponent() {
       isGreetUnderline: false,
       greetFont: "",
       greetSize: 0,
-      greetColor: ""
+      greetColor: "",
+      applicationId: applicationId
     };
 
     markers.forEach(marker => {

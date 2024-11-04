@@ -38,12 +38,14 @@ const Home = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token');
     const urlRoleId = urlParams.get('roleId');
+    const urlApplicationId = urlParams.get('appId')
 
     if (urlToken && urlRoleId) {
       // If token and roleId are in the URL, clear localStorage and store new values
       localStorage.clear();
       localStorage.setItem('auth_token', urlToken);
       localStorage.setItem('roleId', urlRoleId);
+      localStorage.setItem('appId', urlApplicationId);
       validateToken(urlToken);
     } else {
       // Use token from localStorage if URL doesn't have token
@@ -85,6 +87,7 @@ const Home = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('token');
     url.searchParams.delete('roleId');
+    url.searchParams.delete('appId');
     window.history.replaceState({}, document.title, url.toString());
   };
 
