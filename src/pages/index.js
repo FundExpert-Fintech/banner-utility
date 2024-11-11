@@ -60,7 +60,7 @@ const Home = () => {
 
   const validateToken = async (token) => {
     try {
-      const response = await fetch('http://marketing-module-be.fundexpert.in/user/identify', {
+      const response = await fetch('https://marketing-module-be.fundexpert.in/user/identify', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`

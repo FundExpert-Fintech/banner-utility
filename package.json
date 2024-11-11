@@ -1,6 +1,6 @@
 {
   "name": "banner-utility",
-  "proxy": "http://marketing-module-be.fundexpert.in",
+  "proxy": "https://marketing-module-be.fundexpert.in",
   "version": "0.1.0",
   "private": true,
   "scripts": {

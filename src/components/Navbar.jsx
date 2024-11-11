@@ -6,11 +6,14 @@ import { useRouter } from "next/router";
 
 const Navbar = () => {
   const [roleId, setRoleId] = useState(null);
+  const [appId, setAppId] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const storedRoleId = localStorage.getItem('roleId');
+    const storedAppId = localStorage.getItem('appId')
     setRoleId(storedRoleId);
+    setAppId(storedAppId);
   }, []);
 
   const navigation = [
@@ -33,8 +36,8 @@ const Navbar = () => {
                   <div className="flex-shrink-0">
                     <img
                       className="h-8 w-8"
-                      src="/logo.png"
-                      alt="Fundexpert"
+                      src={appId & appId === '1' ? "/fundexpert_logo.png" : "/connect_logo.jpg"}
+                      alt={appId & appId === '1' ? "Fundexpert" : "Kotak Connect Plus"}
                     />
                   </div>
                   <div className="hidden md:block">

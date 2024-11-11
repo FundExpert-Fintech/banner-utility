@@ -106,7 +106,7 @@ function ImageMarkerComponent() {
     setDeletingId(_id);
     setShowDeleteLoader(true);
     try {
-      const deleteResponse = await axios.delete(`http://marketing-module-be.fundexpert.in/template/${_id}`,{
+      const deleteResponse = await axios.delete(`https://marketing-module-be.fundexpert.in/template/${_id}`,{
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }});
